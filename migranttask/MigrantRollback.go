@@ -1,4 +1,4 @@
-package task
+package migranttask
 
 import (
 	"errors"
@@ -31,6 +31,23 @@ func (m MigrantRollback) GetName() string {
 }
 
 func (m MigrantRollback) Run() error {
+	if m.Logger == nil {
+		m.Logger = cbmigrant.DefaultLogger{}
+	}
+	if m.ErrorHandler == nil {
+		m.ErrorHandler = cbmigrant.DefaultErrorHandler{}
+	}
+	if m.Db == nil {
+		e := errors.New("no database set on task")
+		m.ErrorHandler.Error(e)
+		return e
+	}
+	if m.MigrantDatabaseName == "" {
+		m.MigrantDatabaseName = "migrant"
+	}
+	if m.MigrantTableName == "" {
+		m.MigrantTableName = "migration"
+	}
 	if m.MigrantDatabaseName == "" || m.MigrantTableName == "" {
 		e := errors.New("migrant database or table name not configured")
 		m.ErrorHandler.Error(e)
@@ -60,14 +77,14 @@ func (m MigrantRollback) Run() error {
 		}
 	}
 
-	e := m.Db.AutoMigrate(&model.MigrantMigration{}).Error
+	e := m.Db.Table(m.MigrantDatabaseName+"."+m.MigrantTableName).AutoMigrate(&model.MigrantMigration{}).Error
 	if e != nil {
 		m.ErrorHandler.Error(e)
 		return e
 	}
 
 	var dbMigrations []*model.MigrantMigration
-	e = m.Db.Find(&dbMigrations).Error
+	e = m.Db.Table(m.MigrantDatabaseName+"."+m.MigrantTableName).Find(&dbMigrations).Error
 	if e != nil {
 		m.ErrorHandler.Error(e)
 		return e
@@ -95,7 +112,7 @@ func (m MigrantRollback) Run() error {
 				if e != nil {
 					m.ErrorHandler.Error(e)
 				}
-				m.Db.Delete(dbMigration)
+				m.Db.Table(m.MigrantDatabaseName+"."+m.MigrantTableName).Delete(dbMigration)
 				m.Logger.InfoF("TASK", "Rolled back migration %s", mig.Name)
 			}
 		}

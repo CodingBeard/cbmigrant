@@ -1,4 +1,4 @@
-package task
+package migranttask
 
 import (
 	"github.com/codingbeard/cbmigrant"
@@ -28,6 +28,18 @@ func (m MigrantMake) GetName() string {
 }
 
 func (m MigrantMake) Run() error {
+	if m.Logger == nil {
+		m.Logger = cbmigrant.DefaultLogger{}
+	}
+	if m.ErrorHandler == nil {
+		m.ErrorHandler = cbmigrant.DefaultErrorHandler{}
+	}
+	if m.FolderPath == "" {
+		m.FolderPath = "migration/"
+	}
+	if m.PackageName == "" {
+		m.PackageName = "migration"
+	}
 	if len(os.Args) > 5 && os.Args != nil {
 		database := os.Args[3]
 		table := os.Args[4]
@@ -48,12 +60,10 @@ func init() {
 	cbmigrant.Migrations = append(cbmigrant.Migrations, cbmigrant.Migration{
 		Name: "{migrationName}",
 		Up: func(db *gorm.DB) error {
-			e := db.Table("{database}.{table}").Error
-			return e
+			return db.Table("{database}.{table}").Error
 		},
 		Down: func(db *gorm.DB) error {
-			e := db.Table("{database}.{table}").Error
-			return e
+			return db.Table("{database}.{table}").Error
 		},
 	})
 }`, "{packageName}", m.PackageName,
