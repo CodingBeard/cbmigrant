@@ -9,9 +9,9 @@ import (
 )
 
 type MigrantMake struct {
-	FolderPath string
-	PackageName string
-	Logger cbmigrant.Logger
+	FolderPath   string
+	PackageName  string
+	Logger       cbmigrant.Logger
 	ErrorHandler cbmigrant.ErrorHandler
 }
 
@@ -68,8 +68,8 @@ func init() {
 	})
 }`, "{packageName}", m.PackageName,
 			"{migrationName}", migrationName,
-			"{database}", "`"+database+"`",
-			"{table}", "`"+table+"`")
+			"{database}", database,
+			"{table}", table)
 
 		e := ioutil.WriteFile(fileName, []byte(content), os.ModePerm)
 		if e != nil {
